@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ $# != '2' ];
+then echo "Wrong nuber of argument(s)"
+exit 1
+fi
+
+echo $2 #$1 = 1er argument, $2 2eme argument, etc
+
+
+##if  [ ! -d $1 ];
+##then echo "Wrong type of argument(s)"
+##exit 2
+##fi
+
+if [ $1 == '-d1' ];
+then cut -d ';' -f2,6 $2 | grep "^1;"| tr -d '1;' | sort | uniq -c | sort -n -r | head -10 | cut -d ' ' -f5,6,7,8 > temp.txt 
+##affiche les 10 plus gros conducteur en séléctionant tt les premières étapes de chaque trajet (et les conducteur associés)
+gnuplot -p -e "plot cos(x)*exp(2*x)"
+echo "travail terminé"
+exit 666
+fi
+
+if [ $1 == '-d2' ];
+then cut -d ';' -f 5,6 data.csv > temp.txt
+./jamy.c
+
+
+## if [ -L $1 ] verifie si il y a un lien imaginaire
