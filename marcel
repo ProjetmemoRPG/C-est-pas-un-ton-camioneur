@@ -1,5 +1,17 @@
 #!/bin/bash
 
+start_time=$(date +%s) # Capture du temps sur le moment du lancement
+echo " $@">arg.txt
+grep " -h" arg.txt > grep.txt
+
+var='1'
+var2=$(wc -l < grep.txt);
+
+if [ $var2 -eq $var ]
+then echo -e "\na ca voulais RTFM hein? ben j'ai la flm de l'écrire\n"
+exit 0
+fi
+
 if [ $# != '2' ];
 then echo "Wrong nuber of argument(s)"
 exit 1
@@ -14,16 +26,92 @@ echo $2 #$1 = 1er argument, $2 2eme argument, etc
 ##fi
 
 if [ $1 == '-d1' ];
-then cut -d ';' -f2,6 $2 | grep "^1;"| tr -d '1;' | sort | uniq -c | sort -n -r | head -10 | cut -d ' ' -f5,6,7,8 > temp.txt 
+then start_d1_process_time=$(date +%s)
+cut -d ';' -f2,6 $2 | grep "^1;"| tr -d '1;' | sort | uniq -c | sort -n -r | head -10 | cut -d ' ' -f5,6,7,8 > CPS.txt 
 ##affiche les 10 plus gros conducteur en séléctionant tt les premières étapes de chaque trajet (et les conducteur associés)
-gnuplot plot histo_horizon.gp
-echo "travail terminé"
-exit 666
+##gnuplot -p -e "plot cos(x)*exp(2*x)"
+end_d1_process_time=$(date +%s)
+    d1_process_duration=$((end_d1_process_time - start_d1_process_time))
+    echo "Temps de traitement pour -d1: $d1_process_duration secondes"
+    echo "Travail terminé pour -d1"
 fi
 
 if [ $1 == '-d2' ];
-then cut -d ';' -f 5,6 data.csv > temp.txt
-./jamy.c
+then start_d2_process_time=$(date +%s)
+cut -d ';' -f5,6 $2 > temp.txt
 
+gcc -o fred finalfred.c
+
+echo "start c"
+./fred>CPS.txt
+echo "end c"
+
+end_d2_process_time=$(date +%s)
+d2_process_duration=$((end_d2_process_time - start_d2_process_time))
+echo "Temps de traitement pour -d2: $d2_process_duration secondes"
+echo "Travail terminé pour -d2"
+
+fi
+
+
+if [ $1 == '-L' ];
+
+then start_L_process_time=$(date +%s)
+( paste -d ';' <(cut -d ';' -f5 $2) <(cut -d ';' -f1 $2) ) > temp.txt
+
+gcc -o fred finalfred.c
+
+./fred>CPS.txt
+echo "end c"
+
+end_L_process_time=$(date +%s)
+    L_process_duration=$((end_L_process_time - start_L_process_time))
+    echo "Temps de traitement pour -L: $L_process_duration secondes"
+    echo "Travail terminé pour -L"
+
+
+fi
+
+if [ $1 == '-T' ];
+then cut -d ';' -f4 $2 >temp.txt ##prend tt les étape avec uniquement leur ville d'arivée .
+
+cut -d ';' -f2,3 $2 | grep "^1;" | cut -d ';' -f2 > depart.txt
+cat depart.txt >>temp.txt
+
+gcc -o jamy jamy.c  
+
+./jamy>CPS.txt
+
+
+rm depart.txt
+fi
+
+
+if [ $1 == '-s' ];
+
+then start_s_process_time=$(date +%s)
+cut -d ';' -f1,5 $2 >temp.txt
+
+gcc -o sabine truesabine.c
+
+echo "start c"	
+./fred>CPS.txt
+echo "end c"
+
+end_s_process_time=$(date +%s)
+    s_process_duration=$((end_s_process_time - start_s_process_time))
+    echo "Temps de traitement pour -s: $s_process_duration secondes"
+    echo "Travail terminé pour -s"
+
+fi
+
+end_time=$(date +%s) # Capture du temps à la fin du script
+total_duration=$((end_time - start_time)) # Calcul du temps total d'exécution
+echo "Temps total d'exécution: $total_duration secondes"
+
+rm CPS.txt
+rm temp.txt
+rm arg.txt
 
 ## if [ -L $1 ] verifie si il y a un lien imaginaire
+
