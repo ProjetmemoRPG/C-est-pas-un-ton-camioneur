@@ -12,6 +12,7 @@ then echo -e "\na ca voulais RTFM hein? ben j'ai la flm de l'écrire\n"
 exit 0
 fi
 
+
 if [ $# != '2' ];
 then echo "Wrong nuber of argument(s)"
 exit 1
@@ -19,11 +20,6 @@ fi
 
 echo $2 #$1 = 1er argument, $2 2eme argument, etc
 
-
-##if  [ ! -d $1 ];
-##then echo "Wrong type of argument(s)"
-##exit 2
-##fi
 
 if [ $1 == '-d1' ];
 then start_d1_process_time=$(date +%s)
@@ -34,13 +30,40 @@ end_d1_process_time=$(date +%s)
     d1_process_duration=$((end_d1_process_time - start_d1_process_time))
     echo "Temps de traitement pour -d1: $d1_process_duration secondes"
     echo "Travail terminé pour -d1"
+    
+echo "set term png" > Histogramme_horizontal.gp
+echo "set output 'histogramme.png'" >> Histogramme_horizontal.gp
+echo "set title 'Top 10 Conducteurs par Nombre de Trajets' offset -15,-15 rotate by 55">> Histogramme_horizontal.gp
+echo "set ylabel 'Nombre de Trajets'" >> Histogramme_horizontal.gp
+echo "set xlabel 'Conducteurs'" >> Histogramme_horizontal.gp
+echo "set style data histogram" >> Histogramme_horizontal.gp
+echo "set style fill solid" >> Histogramme_horizontal.gp
+echo "set boxwidth 0.5" >> Histogramme_horizontal.gp
+echo "set xlabel rotate by 180" >> Histogramme_horizontal.gp
+echo "set xtics offset 0,-4" >> Histogramme_horizontal.gp
+echo "set xlabel offset 0,-3" >> Histogramme_horizontal.gp
+echo "set xtics rotate by 90" >> Histogramme_horizontal.gp
+echo "set ytics rotate by 90" >> Histogramme_horizontal.gp
+echo "set bmargin at screen 0.2">> Histogramme_horizontal.gp
+
+echo "plot 'CPS.txt' using 1:xtic(2) title ''" >> Histogramme_horizontal.gp
+
+
+gnuplot Histogramme_horizontal.gp
+
+convert -rotate 90 histogramme.png histogramme.png
+
+rm CPS.txt Histogramme_horizontal.gp
+
+echo "Le graphique a été généré avec succès (histogramme.png)."
 fi
+
 
 if [ $1 == '-d2' ];
 then start_d2_process_time=$(date +%s)
 cut -d ';' -f5,6 $2 > temp.txt
 
-gcc -o fred finalfred.c
+make fred
 
 echo "start c"
 ./fred>CPS.txt
@@ -51,6 +74,7 @@ d2_process_duration=$((end_d2_process_time - start_d2_process_time))
 echo "Temps de traitement pour -d2: $d2_process_duration secondes"
 echo "Travail terminé pour -d2"
 
+
 fi
 
 
@@ -59,7 +83,7 @@ if [ $1 == '-L' ];
 then start_L_process_time=$(date +%s)
 ( paste -d ';' <(cut -d ';' -f5 $2) <(cut -d ';' -f1 $2) ) > temp.txt
 
-gcc -o fred finalfred.c
+make fred
 
 ./fred>CPS.txt
 echo "end c"
@@ -75,27 +99,36 @@ fi
 if [ $1 == '-T' ];
 then cut -d ';' -f4 $2 >temp.txt ##prend tt les étape avec uniquement leur ville d'arivée .
 
+make jamy
+
 cut -d ';' -f2,3 $2 | grep "^1;" | cut -d ';' -f2 > depart.txt
 cat depart.txt >>temp.txt
-
-gcc -o jamy jamy.c  
 
 ./jamy>CPS.txt
 
 
 rm depart.txt
+
+end_s_process_time=$(date +%s)
+    s_process_duration=$((end_s_process_time - start_s_process_time))
+    echo "Temps de traitement pour -t: $s_process_duration secondes"
+    echo "Travail terminé pour -t"
+
+
+
 fi
 
 
 if [ $1 == '-s' ];
 
+make sabine
+
 then start_s_process_time=$(date +%s)
 cut -d ';' -f1,5 $2 >temp.txt
 
-gcc -o sabine truesabine.c
 
 echo "start c"	
-./fred>CPS.txt
+./sabine>CPS.txt
 echo "end c"
 
 end_s_process_time=$(date +%s)
@@ -109,9 +142,8 @@ end_time=$(date +%s) # Capture du temps à la fin du script
 total_duration=$((end_time - start_time)) # Calcul du temps total d'exécution
 echo "Temps total d'exécution: $total_duration secondes"
 
-rm CPS.txt
+##rm CPS.txt
 rm temp.txt
 rm arg.txt
-
+rm grep.txt
 ## if [ -L $1 ] verifie si il y a un lien imaginaire
-
