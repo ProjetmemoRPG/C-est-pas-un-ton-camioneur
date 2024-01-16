@@ -1,0 +1,17 @@
+CC=gcc
+CFLAGS=-I.
+
+finalfred: finalfred.c
+	$(CC) -o finalfred finalfred.c $(CFLAGS)
+
+newjamy: newjamy.c
+	$(CC) -o newjamy newjamy.c $(CFLAGS)
+
+truesabine: truesabine.c
+	$(CC) -o truesabine truesabine.c $(CFLAGS)
+
+marcel:
+	./marcel.sh
+
+clean:
+	rm -f finalfred newjamy truesabine
