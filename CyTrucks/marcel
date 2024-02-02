@@ -1,0 +1,214 @@
+#!/bin/bash
+
+echo "création des dossier temporaire"
+
+{
+(cd $(dirname $0) && mkdir data && mkdir temp && mkdir image && mkdir demo && mv $(dirname $0)/image/histogramme.png $(dirname $0)/demo/graph$rename.png)
+}&>/dev/null
+start_time=$(date +%s) # Capture du temps sur le moment du lancement
+echo " $@"> $(dirname $0)/temp/arg.txt
+grep " -h" $(dirname $0)/temp/arg.txt > $(dirname $0)/temp/grep.txt
+
+echo "analyse des arguments"
+
+var='1'
+var2=$(wc -l < $(dirname $0)/temp/grep.txt);
+
+rename=$(ls $(dirname $0)/demo | wc -l)
+
+
+
+
+if [ $var2 -eq $var ]
+then echo -e "\na ca voulais RTFM hein? ben j'ai la flm de l'écrire\n"
+exit 0
+fi
+
+
+if [ $# != '2' ];
+then echo "Wrong nuber of argument(s). try marcel -h"
+exit 1
+fi
+
+cp $2 $(dirname $0)/data
+
+
+if [ $1 == '-d1' ];
+then echo "start tris d1"
+start_d1_process_time=$(date +%s)
+cut -d ';' -f2,6 $2 | grep "^1;"| tr -d '1;' | sort | uniq -c | sort -n -r | head -10 | cut -d ' ' -f5,6,7,8 > $(dirname $0)/temp/CPS.txt 
+##affiche les 10 plus gros conducteur en séléctionant tt les premières étapes de chaque trajet (et les conducteur associés)
+##gnuplot -p -e "plot cos(x)*exp(2*x)"
+end_d1_process_time=$(date +%s)
+    d1_process_duration=$((end_d1_process_time - start_d1_process_time))
+    echo "Temps de traitement pour -d1: $d1_process_duration secondes"
+    echo "Travail terminé pour -d1"
+
+mv $(dirname $0)/temp/CPS.txt $(dirname $2)
+  
+gnuplot $(dirname $0)/Histogramme_horizontalD1.gp
+
+convert -rotate 90 histogramme.png histogramme.png
+
+
+echo "Le graphique a été généré avec succès (histogramme.png)."
+
+
+elif [ $1 == '-d2' ];
+then echo "start tris d2"
+echo "start compilation"
+(cd $(dirname $0)/progc && make fred)	
+start_d2_process_time=$(date +%s)
+
+ls
+
+cut -d ';' -f5,6 $2 > $(dirname $0)/temp/temp.txt
+
+
+
+echo "start program c"
+mv $(dirname $0)/progc/fred $(dirname $0)/temp
+(cd $(dirname $0)/temp && ./fred > $(dirname $0)/temp/CPS.txt)
+mv $(dirname $0)/temp/fred $(dirname $0)/progc
+echo "end program c"
+
+end_d2_process_time=$(date +%s)
+d2_process_duration=$((end_d2_process_time - start_d2_process_time))
+echo "Temps de traitement pour -d2: $d2_process_duration secondes"
+echo "Travail terminé pour -d2"
+
+
+sed -i -e "s/;/ /g" $(dirname $0)/temp/CPS.txt
+
+mv $(dirname $0)/temp/CPS.txt $(dirname $2)
+
+cd $(dirname $2)
+
+gnuplot $(dirname $0)/Histogramme_horizontalD2.gp
+
+convert -rotate 90 histogramme.png histogramme.png
+
+
+
+##rm CPS.txt
+
+
+elif [ $1 == '-l' ];
+
+then echo "start tris l"
+echo "start compilation"
+(cd $(dirname $0)/progc && make fred)	
+
+start_L_process_time=$(date +%s)
+( paste -d ';' <(cut -d ';' -f5 $2) <(cut -d ';' -f1 $2) ) > temp.txt
+
+echo "start program c"
+mv $(dirname $0)/progc/fred $(dirname $0)/temp
+(cd $(dirname $0)/temp && ./fred > $(dirname $0)/temp/CPS.txt)
+mv $(dirname $0)/temp/fred $(dirname $0)/progc
+echo "end program c"
+sed -i -e "s/;/ /g" $(dirname $0)/temp/CPS.txt
+end_L_process_time=$(date +%s)
+    L_process_duration=$((end_L_process_time - start_L_process_time))
+    echo "Temps de traitement pour -l: $L_process_duration secondes"
+    echo "Travail terminé pour -l"
+
+mv $(dirname $0)/temp/CPS.txt $(dirname $2)
+
+cd $(dirname $2)
+
+gnuplot $(dirname $0)/Histogramme_verticale.gp
+
+
+elif [ $1 == '-t' ];
+then  echo "start tris t"
+echo "start compilation"
+(cd $(dirname $0)/progc && make jamy)	
+
+start_t_process_time=$(date +%s)
+
+
+##awk -F';' '$4!=$3' $2 > $(dirname $0)/temp/temp1.txt #supprime les cas ou une ville apparaisse 2 fois en 1 étape. on obtient donc un résultat inferieur pour les villes avec des arondissement de celui donné sur teams. retirer cette ligne pour conter tt les etapes et obtenir un résultat superieur pour les villes avec des arondissement par raport au resultat donné sur teams.
+cut -d ';' -f4 $(dirname $0)/temp/temp1.txt > $(dirname $0)/temp/temp.txt ##prend tt les étape avec uniquement leur ville d'arivée .
+
+
+
+cut -d ';' -f2,3 $2 | grep "^1;" | cut -d ';' -f2 > $(dirname $0)/temp/depart.txt
+cat depart.txt >>$(dirname $0)/temp/temp.txt
+
+echo "start program c"
+mv $(dirname $0)/progc/jamy $(dirname $0)/temp
+(cd $(dirname $0)/temp && ./jamy > $(dirname $0)/temp/CPS.txt)
+mv $(dirname $0)/temp/jamy $(dirname $0)/progc
+
+echo "end program c"
+(cd $(dirname $0)/temp && sed -i -e "s/ //g" CPS.txt)
+(cd $(dirname $0)/temp && sed -i -e "s/;/ /g" CPS.txt)
+
+##rm $(dirname $0)/temp/depart.txt
+
+end_t_process_time=$(date +%s)
+    t_process_duration=$((end_t_process_time - start_t_process_time))
+    echo "Temps de traitement pour -t: $t_process_duration secondes"
+    echo "Travail terminé pour -t"
+
+mv $(dirname $0)/temp/CPS.txt $(dirname $2)
+
+cd $(dirname $2)
+
+gnuplot $(dirname $0)/Histogramme_verticale_regrouper.gp
+
+
+elif [ $1 == '-s' ];
+
+
+
+then  echo "start tris s"
+echo "start compilation"
+(cd $(dirname $0)/progc && make sabine)	
+start_s_process_time=$(date +%s)
+
+cut -d ';' -f1,5 $2 > $(dirname $0)/temp/temp.txt
+
+
+echo "start program c"	
+mv $(dirname $0)/progc/sabine $(dirname $0)/temp
+(cd $(dirname $0)/temp && ./sabine > $(dirname $0)/temp/CPS.txt)
+mv $(dirname $0)/temp/sabine $(dirname $0)/progc
+echo "end program c"
+
+mv $(dirname $0)/temp/CPS.txt $(dirname $2)
+
+cd $(dirname $2)
+
+gnuplot $(dirname $0)/Histogramme_non_histograme2.gp
+
+
+end_s_process_time=$(date +%s)
+    s_process_duration=$((end_s_process_time - start_s_process_time))
+    echo "Temps de traitement pour -s: $s_process_duration secondes"
+    echo "Travail terminé pour -s"
+
+else
+echo "wrong argument. try marcel -h"
+exit
+
+fi
+
+end_time=$(date +%s) # Capture du temps à la fin du script
+total_duration=$((end_time - start_time)) # Calcul du temps total d'exécution
+echo "Temps total d'exécution: $total_duration secondes"
+
+mv histogramme.png $(dirname $0)/image
+echo "supretion des fichier temporaire"
+rm $(dirname $2)/CPS.txt
+rm $(dirname $0)/temp/temp.txt
+rm $(dirname $0)/temp/temp1.txt
+rm $(dirname $0)/temp/arg.txt
+rm $(dirname $0)/temp/grep.txt
+
+eog $(dirname $0)/image/histogramme.png
+
+
+## if [ -L $1 ] verifie si il y a un lien imaginaire
+
