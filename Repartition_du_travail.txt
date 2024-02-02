@@ -1,0 +1,22 @@
+Répartition du travail
+
+Matis
+Gnuplot
+Tris supplémentaires
+Code C (bonne partie)
+Traitement S
+Amélioration du projet
+
+Samy
+Calcule de temps pour chaque opération du script Shell
+Make file
+gnuplot
+Ecrire la répartition du travail
+Traitement L
+Traitement T
+
+Timothé
+Tris d1
+Tris d2
+ Gnuplot
+Code C (petite partie)
