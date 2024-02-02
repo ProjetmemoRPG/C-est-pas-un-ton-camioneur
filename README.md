@@ -8,6 +8,7 @@ l'éxecution du programe ce fait de cette magnère : "marcel [option] "fichier_a
 assurer vous d'avoir un dossier ~/Image pour que le program deplace l'image (nomer Histograme.png) dans ce dernier. si le dossier n'existe pas, l'image sera par défaut dans le fichier ou vous vous trouver au moment d'executer la comande.
 
 liste des option :
+
 -d1 affiche les 10 conducteur ayant le plus de trajet dans l'ordre decroissant
 
 -d2 affiche les 10 conducteur ayant parcourue la plus grande distance dans l'ordre decroissant
