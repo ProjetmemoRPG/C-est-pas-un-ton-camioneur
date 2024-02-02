@@ -9,7 +9,11 @@ assurer vous d'avoir un dossier ~/Image pour que le program deplace l'image (nom
 
 liste des option :
 -d1 affiche les 10 conducteur ayant le plus de trajet dans l'ordre decroissant
+
 -d2 affiche les 10 conducteur ayant parcourue la plus grande distance dans l'ordre decroissant
+
 -l affiche les 10 trajet les plus long
+
 -t affiche les 10 ville les plus traverser
+
 -s affiche les 50 trajet avec le plus grand ecart entre leur distance maximal et minimal entre chaque étape
